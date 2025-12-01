@@ -122,11 +122,144 @@
 
 ---
 
-### 한국어 3줄 요약
+## 6. Justice_v2 이후 확장 실험: 왜 추가 단계가 필요했는가?
 
-- 데이터 분리 실험(Full vs Commonsense vs Justice), dropout/epoch 조정, label smoothing을 통해 **과적합을 줄이고 일반화 성능을 향상**시켰다.  
-- Validation 기준으로는 commonsense 모델이 가장 높았지만,  
-  **실제 테스트 환경에서는 justice 기반 모델이 더 안정적**이었다.  
-- 최종적으로 **`justice_v2` (dropout + weight decay + label smoothing)** 모델을  
-  이후 fake news 분석 파이프라인의 핵심 분류기로 사용한다.
+최종적으로 `justice_v2` 모델을 선택했지만,  
+AI-generated fake news를 실제로 분석하는 과정에서 여러 한계가 드러났다.  
+이 문제들을 해결하기 위해 아래와 같은 추가 확장 실험과 파이프라인 개선 작업을 수행했다.
+
+---
+
+## 6-1. 문제 인식: Justice 모델은 ‘공정성’ 외 윤리 위험을 거의 탐지하지 못함
+
+Justice 모델은 ETHICS의 *impartiality/desert* 태스크 기반이므로 다음 유형 탐지에 취약했다:
+
+- 혐오(hate speech)
+- 공격적 표현(offensive)
+- 집단 비하(discriminatory framing)
+- 정치·사회적 선동(propaganda-style tone)
+- 공포 조장(fear-mongering)
+
+## 6. Justice_v2 이후 확장 실험: 왜 추가 단계가 필요했는가?
+
+최종적으로 `justice_v2` 모델을 선택했지만,  
+AI-generated fake news를 실제로 분석하는 과정에서 여러 한계가 드러났다.  
+이 문제들을 해결하기 위해 아래와 같은 추가 확장 실험과 파이프라인 개선 작업을 수행했다.
+
+---
+
+## 6-1. 문제 인식: Justice 모델은 ‘공정성’ 외 윤리 위험을 거의 탐지하지 못함
+
+Justice 모델은 ETHICS의 *impartiality/desert* 태스크 기반이므로 다음 유형 탐지에 취약했다:
+
+- 혐오(hate speech)
+- 공격적 표현(offensive)
+- 집단 비하(discriminatory framing)
+- 정치·사회적 선동(propaganda-style tone)
+- 공포 조장(fear-mongering)
+
+
+→ 실제로는 매우 위험한 문장임에도 `unethical = 0` 으로 분류되는 경우가 발생.
+
+**한계 원인**
+- Justice 서브태스크는 “부당한 대우” 중심
+- Hate/Toxicity/Propaganda 관련 표현을 포착하도록 설계되지 않음
+
+---
+
+## 6-2. 해결: HateXplain 기반 혐오·공격성 분류 모델 추가 구축
+
+Justice 모델을 보완하기 위해 HateXplain 기반 3-class 분류기를 구축했다.
+
+- 3개 클래스  
+  - `hatespeech`  
+  - `offensive`  
+  - `normal`
+- 각 문장에 대해 확률 생성  
+  - `p_hate`, `p_offensive`, `p_normal`
+- 두 위험도를 합산  
+  - `prob_hate_offensive = p_hate + p_offensive`
+
+두 모델을 결합하여 4종류의 multi-risk 유형을 정의했다.
+
+| risk_type | 의미 |
+|-----------|------|
+| both | justice + hate/offensive 둘 다 위험 |
+| justice_only | 공정성 위반만 존재 |
+| hate_only | 혐오/공격성만 존재 |
+| none | 위험 없음 |
+
+---
+
+## 6-3. 문제 인식: “위험하다”는 정보만으로는 *왜* 위험한지 알 수 없음
+
+문장 분류 결과만으로는 다음을 구분하기 어려웠다.
+
+- 어떤 윤리 원칙을 위반했는가?
+- 사회적 해악인지, 공정성 문제인지, 안전성 문제인지?
+- 모델 판단의 근거는 무엇인가?
+
+즉, **설명 가능성이 부족한 상황**이었음.
+
+---
+
+## 6-4. 해결: UNESCO AI Ethics Framework(11개 원칙)에 문장 의미 매핑
+
+문장 임베딩과 UNESCO 11개 윤리 원칙 문구 간 cosine similarity를 사용하여  
+각 문장을 다음과 같이 확장 태깅했다.
+
+- `unesco_principle_final`  
+- `unesco_score_final`
+
+이를 통해 다음이 가능해짐:
+
+- 모델이 문장을 왜 위험하다고 판단했는지 설명  
+- 위반 가능성이 높은 윤리 영역 파악  
+- 기사(article) 단위에서 윤리 위험 패턴 비교
+
+---
+
+## 6-5. 문제 인식: 기사(article) 단위 위험은 단순 합산으로는 왜곡될 수 있음
+
+문장 단위 위험을 그대로 더하면 기사 간 리스크 비교가 어려움.
+
+예시:
+- 1/100 문장만 매우 위험한 기사  
+- 4/10 문장이 중간 위험인 기사  
+→ 둘 중 어떤 기사가 더 위험한가?
+
+이를 해결하기 위해 article-level 집계를 수행했다.
+
+- `avg_unethical`
+- `avg_hate_off`
+- `unethical_ratio`
+- `hate_offensive_ratio`
+- `top_unesco_principles`
+
+---
+
+## 6-6. 시각화 자동화: 위험 패턴을 사람이 이해하기 쉬운 형태로 표현
+
+다음 시각화를 생성하여 분석 결과를 구조화함.
+
+- `unethical_ratio` 히스토그램
+- `hate_offensive_ratio` 히스토그램
+- `risk_type` 별 UNESCO principle 바플롯
+- high-risk 문장 Top-K 리스트
+- hate_top_label 분포
+
+---
+
+## 6-7. 최종 파이프라인 요약
+
+1. 뉴스 문장 분리  
+2. `justice_v2`로 윤리적 위험 탐지  
+3. HateXplain으로 혐오·공격성 탐지  
+4. 두 결과를 합쳐 risk type 생성  
+5. UNESCO AI Ethics Framework에 semantic 매핑  
+6. article-level 위험 집계  
+7. 시각화 및 사례 분석 리포트 생성
+
+---
+
 
