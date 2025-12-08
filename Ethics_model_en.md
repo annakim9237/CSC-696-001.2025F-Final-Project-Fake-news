@@ -75,7 +75,7 @@ Below is a summary of the main efforts made to improve model quality and robustn
   - **`justice` models were more robust on the test set,**
   - `justice_v2` (with dropout, weight decay, and label smoothing) achieved the best balance of test loss and F1.
 
-Therefore, the final classifier chosen for downstream fake news analysis is **`justice_v2`** (DistilBERT + dropout 0.2 + weight decay + label smoothing 0.1).
+Therefore, the final classifier chosen for downstream fake news analysis is **`justice_v1`** (DistilBERT + dropout 0.2 + weight decay + label smoothing 0.1).
 
 ---
 
