@@ -122,9 +122,9 @@
 
 ---
 
-## 6. Justice_v2 이후 확장 실험: 왜 추가 단계가 필요했는가?
+## 6. Justice_v1 이후 확장 실험: 왜 추가 단계가 필요했는가?
 
-최종적으로 `justice_v2` 모델을 선택했지만,  
+최종적으로 `justice_v1` 모델을 선택했지만,  
 AI-generated fake news를 실제로 분석하는 과정에서 여러 한계가 드러났다.  
 이 문제들을 해결하기 위해 아래와 같은 추가 확장 실험과 파이프라인 개선 작업을 수행했다.
 
@@ -142,7 +142,7 @@ Justice 모델은 ETHICS의 *impartiality/desert* 태스크 기반이므로 다�
 
 ## 6. Justice_v2 이후 확장 실험: 왜 추가 단계가 필요했는가?
 
-최종적으로 `justice_v2` 모델을 선택했지만,  
+최종적으로 `justice_v1` 모델을 선택했지만,  
 AI-generated fake news를 실제로 분석하는 과정에서 여러 한계가 드러났다.  
 이 문제들을 해결하기 위해 아래와 같은 추가 확장 실험과 파이프라인 개선 작업을 수행했다.
 
@@ -253,7 +253,7 @@ Justice 모델을 보완하기 위해 HateXplain 기반 3-class 분류기를 구
 ## 6-7. 최종 파이프라인 요약
 
 1. 뉴스 문장 분리  
-2. `justice_v2`로 윤리적 위험 탐지  
+2. `justice_v1`로 윤리적 위험 탐지  
 3. HateXplain으로 혐오·공격성 탐지  
 4. 두 결과를 합쳐 risk type 생성  
 5. UNESCO AI Ethics Framework에 semantic 매핑  
