@@ -79,9 +79,9 @@ Therefore, the final classifier chosen for downstream fake news analysis is **`j
 
 ---
 
-## 6. Why Additional Experiments Were Necessary After Selecting `justice_v2`
+## 6. Why Additional Experiments Were Necessary After Selecting `justice_v1`
 
-Although `justice_v2` was selected as the primary ETHICS-based classifier,  
+Although `justice_v1` was selected as the primary ETHICS-based classifier,  
 applying it to AI-generated fake news revealed several critical limitations.  
 Addressing these limitations required additional modeling, semantic mapping, and  
 article-level risk aggregation. The following sections describe the motivation and  
