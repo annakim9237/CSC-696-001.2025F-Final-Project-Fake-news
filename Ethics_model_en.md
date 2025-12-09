@@ -35,7 +35,7 @@ Below is a summary of the main efforts made to improve model quality and robustn
 
 ---
 
-### 2. Model Architecture Adjustments
+### 2. Model Architecture Adjustments(ver2)
 
 #### 2-1. Increase Dropout
 
@@ -211,7 +211,7 @@ These visualizations highlight risk hotspots and thematic patterns.
 The complete multi-dimensional ethical analysis pipeline:
 
 1. Split article into sentences  
-2. Classify each sentence with `justice_v2`  
+2. Classify each sentence with `justice_v1`  
 3. Classify each sentence with HateXplain  
 4. Assign combined multi-risk type (`both`, `justice_only`, etc.)  
 5. Map each sentence to a UNESCO principle via embeddings  
